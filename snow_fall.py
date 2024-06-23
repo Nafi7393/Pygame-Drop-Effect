@@ -1,58 +1,68 @@
 import pygame
 import random
+import math
 
-# Starting The pygame & Some common Variables
+# Initialize Pygame
 pygame.init()
-game_run = True
-fps = 60
-clock = pygame.time.Clock()
-BLACK = [0, 0, 0]
-WHITE = [255, 255, 255]
-snow_size = 3
-snow_num = 200
 
-# Main Window
-screen_width = 500
-screen_height = 600
-screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("Snow Animation")
+# Constants
+SCREEN_WIDTH = 500
+SCREEN_HEIGHT = 600
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+FPS = 60
+SNOW_SIZE = 10
+SNOW_NUM = 200
 
+# Create a Snowflake class
+class Snowflake:
+    def __init__(self, screen):
+        self.screen = screen
+        self.x = random.randint(0, SCREEN_WIDTH)
+        self.y = random.randint(-SCREEN_HEIGHT, SCREEN_HEIGHT)
+        self.size = random.randint(5, SNOW_SIZE)  # Varying sizes
+        self.speed = random.randint(1, 4)  # Varying speeds
+        self.angle = random.uniform(0, math.pi * 2)  # Random initial angle for tilt
 
-# Snow list
-snow_list = []
+    def update(self):
+        self.y += self.speed
+        self.x += math.sin(self.angle) * 0.5  # Small random tilt
+        if self.y > SCREEN_HEIGHT:
+            self.y = random.randint(-50, -10)
+            self.x = random.randint(0, SCREEN_WIDTH)
 
-
-# Making Snow
-for snow in range(snow_num):
-    x = random.randint(0, screen_width)
-    y = random.randint(-screen_height, screen_height)
-    snow_list.append([x, y])
-
-
-# Here is the Main Function
-def main_function():
-    for i in range(len(snow_list)):
-        pygame.draw.circle(screen, WHITE, snow_list[i], snow_size)
-        snow_list[i][1] += 3 # random.randint(1, 2)
-        # snow_list[i][0] += 3 # random.randint(-3, 3)
-
-        if snow_list[i][1] > 610:
-            y = random.randint(-50, -10)
-            x = random.randint(0, 600)
-
-            snow_list[i][1] = y
-            snow_list[i][0] = x
+    def draw(self):
+        pygame.draw.circle(self.screen, WHITE, (int(self.x), int(self.y)), self.size)
 
 
-# Main Loop
-while game_run:
-    pygame.display.flip()
-    screen.fill(BLACK)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            game_run = False
+# Snowfall class to manage the simulation
+class Snowfall:
+    def __init__(self):
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        pygame.display.set_caption("Snowfall Simulation")
+        self.clock = pygame.time.Clock()
+        self.snowflakes = [Snowflake(self.screen) for _ in range(SNOW_NUM)]
 
-    clock.tick(fps)
-    main_function()
+    def run(self):
+        running = True
+        while running:
+            self.clock.tick(FPS)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
 
-pygame.quit()
+            self.screen.fill(BLACK)  # Clear the screen before drawing
+
+            for snowflake in self.snowflakes:
+                snowflake.update()
+                snowflake.draw()
+
+            pygame.display.flip()
+
+        pygame.quit()
+
+
+# Entry point
+if __name__ == "__main__":
+    snowfall_simulation = Snowfall()
+    snowfall_simulation.run()
